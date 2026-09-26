@@ -7,9 +7,6 @@ from kivy.uix.scrollview import ScrollView
 #add
 import json, os, re
 
-from wheel.cli.convert import wininst_re
-
-
 class AI:
     def __init__(self):
         self.file = "brain.json"
@@ -116,8 +113,26 @@ class ChatBoormolda(App):
             return
         self.add_message("You\n" + text)
         self.input.text = ""
-        answer = self.get_answer(text)
-        self.add_message("ChatBoormolda\n" + answer)
+        #add
+        if self.learning_mode == "question":
+            self.learning_question = text
+            self.learning_mode = "answer"
+            self.add_message("ChatBoormolda:\nEnter correct answer")
+            return
+        if  self.learning_mode == "answer":
+            self.ai.teach(self.learning_question, text)
+            self.add_message("ChatBoormolda:\nI got it! 👌")
+            self.learning_question = None
+            self.learning_mode = None
+            return
+        answer , score = self.ai.get_answer(text)
+        if answer:
+            self.add_message(f"ChatBoormolda:\n{answer}\nVitsotok:{int(score*100)}%")
+        else:
+            self.learning_question = text
+            self.learning_mode = "answer"
+            self.add_message("ChatBoormolda:\nI don`t know\nEnter correct answer")
+        #add
     def add_message(self, text):
         label = Label(text = text, size_hint_y = None, halign = "left", valign = "top")
         self.message.add_widget(label)
